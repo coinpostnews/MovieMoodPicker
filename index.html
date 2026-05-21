@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Mood Picker</title>
+    <style>
+        :root {
+            --primary-color: #6a0572; /* Dark purple */
+            --secondary-color: #9b2226; /* Dark red */
+            --accent-color: #faa613; /* Gold/Orange */
+            --text-color: #e0e0e0; /* Light gray */
+            --background-color: #1a1a2e; /* Dark blue-purple */
+            --card-background: #2c2c47; /* Slightly lighter dark blue-purple */
+            --border-color: #4a4a6b; /* Muted purple */
+            --hover-color: #8c0695; /* Lighter primary */
+            --shadow-color: rgba(0, 0, 0, 0.4);
+
+            --font-main: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            --font-emoji: 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--background-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: clamp(12px, 4vw, 24px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            color: var(--accent-color);
+            text-align: center;
+            margin: clamp(24px, 6vw, 48px) 0 clamp(28px, 6vw, 40px);
+            font-size: clamp(1.75rem, 6vw, 2.5rem);
+            line-height: 1.1;
+            text-shadow: 0 4px 8px var(--shadow-color);
+        }
+
+        .mood-selector {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: clamp(10px, 3vw, 15px);
+            max-width: 900px;
+            width: 100%;
+            margin-bottom: 40px;
+            justify-content: center;
+        }
+
+        .mood-button {
+            background-color: var(--card-background);
+            border: 2px solid var(--border-color);
+            border-radius: 12px;
+            padding: clamp(14px, 4vw, 20px) 10px;
+            cursor: pointer;
+            font-size: 1.1em;
+            font-weight: bold;
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease-in-out;
+            min-height: 80px; /* Ensure touch-friendly size */
+            box-shadow: 0 4px 10px var(--shadow-color);
+            text-align: center;
+            user-select: none; /* Prevent text selection */
+            overflow-wrap: anywhere;
+        }
+
+        .mood-button:hover {
+            background-color: var(--hover-color);
+            border-color: var(--accent-color);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 16px var(--shadow-color);
+        }
+
+        .mood-button:active {
+            background-color: var(--primary-color);
+            transform: translateY(0) scale(0.98);
+            box-shadow: 0 2px 5px var(--shadow-color);
+        }
+
+        .mood-button.selected {
+            background-color: var(--primary-color);
+            border-color: var(--accent-color);
+            box-shadow: 0 0 0 3px var(--accent-color), 0 4px 10px var(--shadow-color);
+        }
+
+        .mood-button .emoji {
+            font-family: var(--font-emoji);
+            font-size: clamp(2.4em, 10vw, 3em);
+            margin-bottom: 5px;
+            line-height: 1;
+        }
+
+        .loading-indicator {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background-color: var(--card-background);
+            border-radius: 12px;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            color: var(--accent-color);
+            font-size: 1.2em;
+            margin-top: 30px;
+        }
+
+        .loading-indicator.active {
+            display: flex;
+        }
+
+        .spinner {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--accent-color);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            display: none;
+            background-color: var(--secondary-color);
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: bold;
+            box-shadow: 0 4px 10px var(--shadow-color);
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .results-actions {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 24px;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .results-actions.active {
+            display: flex;
+        }
+
+        .refresh-button {
+            min-height: 44px;
+            border: 2px solid var(--accent-color);
+            border-radius: 8px;
+            background: var(--primary-color);
+            color: white;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+            padding: 10px 18px;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            transition: transform 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+        }
+
+        .refresh-button:hover {
+            background: var(--hover-color);
+            transform: translateY(-2px);
+        }
+
+        .refresh-button:active {
+            transform: translateY(0);
+        }
+
+        .refresh-button:disabled {
+            cursor: wait;
+            opacity: 0.65;
+            transform: none;
+        }
+
+        .clear-history-button {
+            min-height: 44px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--text-color);
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+            padding: 10px 16px;
+            transition: border-color 0.2s ease, color 0.2s ease, opacity 0.2s ease;
+        }
+
+        .clear-history-button:hover {
+            border-color: var(--accent-color);
+            color: var(--accent-color);
+        }
+
+        .clear-history-button:disabled {
+            cursor: wait;
+            opacity: 0.65;
+        }
+
+        .history-status {
+            flex-basis: 100%;
+            min-height: 20px;
+            color: var(--accent-color);
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-align: center;
+        }
+
+        .movie-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+            gap: 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin-top: clamp(24px, 6vw, 40px);
+        }
+
+        .movie-card {
+            background-color: var(--card-background);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px var(--shadow-color);
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-5px) scale(1.01);
+            box-shadow: 0 8px 16px var(--shadow-color);
+        }
+
+        .movie-card > img {
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            object-fit: cover;
+            background: var(--background-color);
+        }
+
+        .movie-card-info {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .movie-card-info h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--accent-color);
+            font-size: 1.3em;
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+        }
+
+        .movie-card-info p {
+            font-size: 0.9em;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .movie-card-info .genres {
+            font-size: 0.85em;
+            color: var(--text-color);
+            margin-bottom: 5px;
+        }
+
+        .ratings-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            margin: 8px 0 12px;
+        }
+
+        .rating-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+            color: var(--text-color);
+            font-size: 0.86em;
+            line-height: 1.25;
+        }
+
+        .rating-logo {
+            flex: 0 0 48px;
+            min-height: 24px;
+            border-radius: 4px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            font-weight: 800;
+            letter-spacing: 0.02em;
+            color: #111;
+        }
+
+        .rating-value {
+            min-width: 0;
+            overflow-wrap: anywhere;
+            font-weight: 700;
+        }
+
+        .rating-source-imdb .rating-logo {
+            background: #f5c518;
+        }
+
+        .rating-source-imdb .rating-value {
+            color: #f8d957;
+        }
+
+        .rating-source-rt .rating-logo {
+            background: #fa320a;
+            color: white;
+        }
+
+        .rating-source-rt .rating-value {
+            color: #ff8a72;
+        }
+
+        .rating-source-metacritic .rating-logo {
+            background: #66cc33;
+        }
+
+        .rating-source-metacritic .rating-value {
+            color: #9be16f;
+        }
+
+        .rating-source-tmdb .rating-logo {
+            background: #01b4e4;
+            color: #062230;
+        }
+
+        .rating-source-tmdb .rating-value {
+            color: #7cdcff;
+        }
+
+        .movie-card-info .watched-checkbox {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+            color: var(--text-color);
+            min-height: 44px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .movie-card-info .watched-checkbox input[type="checkbox"] {
+            width: 22px;
+            height: 22px;
+            flex: 0 0 22px;
+            accent-color: var(--accent-color);
+        }
+
+        .empty-state-message {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--text-color);
+            background: var(--card-background);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 24px;
+            margin: 0;
+        }
+
+        /* Movie Detail Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            padding: 12px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--card-background);
+            border-radius: 12px;
+            padding: clamp(18px, 5vw, 30px);
+            max-width: 800px;
+            width: min(100%, 800px);
+            max-height: calc(100vh - 24px);
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 8px 30px var(--shadow-color);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .modal-close-button {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            font-size: 2em;
+            line-height: 1;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: color 0.2s ease;
+        }
+
+        .modal-close-button:hover {
+            color: var(--accent-color);
+        }
+
+        .modal-movie-details {
+            display: flex;
+            gap: 20px;
+            flex-direction: column;
+        }
+
+        .modal-movie-details img {
+            width: 100%;
+            max-width: 300px;
+            height: auto;
+            border-radius: 8px;
+            align-self: center;
+        }
+
+        .modal-movie-details .info-section h2 {
+            color: var(--accent-color);
+            margin-top: 0;
+            margin-bottom: 10px;
+            padding-right: 44px;
+            overflow-wrap: anywhere;
+        }
+
+        .modal-movie-details .info-section {
+            min-width: 0;
+        }
+
+        .modal-movie-details .info-section p {
+            margin-bottom: 8px;
+            overflow-wrap: anywhere;
+        }
+
+        .modal-movie-details .ratings-list {
+            margin: 8px 0 14px;
+        }
+
+        .modal-movie-details .info-section strong {
+            color: var(--accent-color);
+        }
+
+        .modal-movie-details .providers {
+            margin-top: 20px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        .modal-movie-details .providers h3 {
+            color: var(--accent-color);
+            margin-top: 0;
+            margin-bottom: 15px;
+        }
+
+        .modal-movie-details .provider-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .modal-movie-details .provider-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background-color: var(--background-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.9em;
+            color: var(--text-color);
+            min-height: 44px;
+            min-width: 0;
+            overflow-wrap: anywhere;
+        }
+
+        .modal-movie-details .provider-item img {
+            width: 30px;
+            height: 30px;
+            border-radius: 4px;
+        }
+
+        /* Responsive Adjustments */
+        @media (min-width: 768px) {
+            .mood-selector {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            .modal-movie-details {
+                flex-direction: row;
+                align-items: flex-start;
+            }
+            .modal-movie-details img {
+                flex-shrink: 0;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .mood-selector {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        @media (max-width: 420px) {
+            .mood-selector {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .modal-overlay {
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Movie Mood Picker</h1>
+
+    <div class="mood-selector" id="mood-selector">
+        <button class="mood-button" data-mood="Весело">
+            <span class="emoji">😄</span>Весело
+        </button>
+        <button class="mood-button" data-mood="Грустно">
+            <span class="emoji">😢</span>Грустно
+        </button>
+        <button class="mood-button" data-mood="Романтика">
+            <span class="emoji">💕</span>Романтика
+        </button>
+        <button class="mood-button" data-mood="Экшн">
+            <span class="emoji">💥</span>Экшн
+        </button>
+        <button class="mood-button" data-mood="Страшно">
+            <span class="emoji">😱</span>Страшно
+        </button>
+        <button class="mood-button" data-mood="Вдохновляюще">
+            <span class="emoji">✨</span>Вдохновляюще
+        </button>
+    </div>
+
+    <div class="loading-indicator" id="loading-indicator">
+        <div class="spinner"></div>
+        <span>Подбираю фильмы...</span>
+    </div>
+
+    <div class="error-message" id="error-message"></div>
+
+    <div class="results-actions" id="results-actions">
+        <button class="refresh-button" id="refresh-button" type="button">Обновить подборку</button>
+        <button class="clear-history-button" id="clear-history-button" type="button">Очистить историю</button>
+        <span class="history-status" id="history-status" aria-live="polite"></span>
+    </div>
+
+    <div class="movie-list" id="movie-list">
+        <!-- Movie cards will be rendered here -->
+    </div>
+
+    <div class="modal-overlay" id="movie-detail-modal-overlay">
+        <div class="modal-content" id="movie-detail-modal-content">
+            <button class="modal-close-button" id="modal-close-button">&times;</button>
+            <div class="modal-movie-details" id="modal-movie-details">
+                <!-- Detailed movie info will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="./src/main.js?v=20260521i"></script>
+</body>
+</html>

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Phase 3 Mock State</title>
+</head>
+<body>
+    <script>
+        const movies = [
+            {
+                id: 101,
+                title: 'Амели',
+                original_title: "Le Fabuleux Destin d'Amelie Poulain",
+                poster_path: '/nSxDa3M9aMvGVLoItzWTepQ5h5d.jpg',
+                vote_average: 8.3,
+                genres: [{ name: 'Комедия' }, { name: 'Романтика' }],
+                overview: 'Мечтательная парижанка незаметно меняет жизни людей вокруг себя.',
+                release_date: '2001-04-25',
+                runtime: 122,
+                credits: {
+                    crew: [{ job: 'Director', name: 'Жан-Пьер Жене' }],
+                    cast: [
+                        { name: 'Одри Тоту' },
+                        { name: 'Матьё Кассовиц' },
+                        { name: 'Рюфюс' },
+                        { name: 'Лорелла Кравотта' },
+                        { name: 'Серж Мерлин' }
+                    ]
+                },
+                'watch/providers': {
+                    results: {
+                        RU: {
+                            flatrate: [
+                                { provider_name: 'Кинопоиск', logo_path: '/t2yyOv40HZeVlLjYsCsPHnWLk4W.jpg' },
+                                { provider_name: 'Okko', logo_path: '/zNks7I9d9LJ32b7k5q8hjL3B5er.jpg' }
+                            ]
+                        }
+                    }
+                }
+            },
+            {
+                id: 202,
+                title: 'Фильм без постера',
+                original_title: 'No Poster Movie',
+                poster_path: null,
+                vote_average: 0,
+                genres: [],
+                overview: '',
+                release_date: '',
+                runtime: null,
+                credits: { crew: [], cast: [] },
+                'watch/providers': { results: {} }
+            }
+        ];
+
+        localStorage.setItem('movieMoodPickerState', JSON.stringify({
+            selectedMood: 'Романтика',
+            movies,
+            selectedMovieId: null,
+            selectedMovie: null,
+            loading: false,
+            error: null,
+            watchedMovies: {}
+        }));
+        localStorage.removeItem('watchedMovies');
+        window.location.href = '/';
+    </script>
+</body>
+</html>

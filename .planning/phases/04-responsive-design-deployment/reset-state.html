@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Reset Movie Mood Picker State</title>
+</head>
+<body>
+    <script>
+        localStorage.removeItem('movieMoodPickerState');
+        localStorage.removeItem('watchedMovies');
+        Object.keys(localStorage).forEach((key) => {
+            if (key.startsWith('cache_groq_') || key.startsWith('cache_tmdb_')) {
+                localStorage.removeItem(key);
+            }
+        });
+        window.location.href = '/';
+    </script>
+</body>
+</html>
