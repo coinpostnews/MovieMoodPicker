@@ -5,7 +5,7 @@
  * an array of enriched movie objects ready for UI rendering.
  */
 
-import { fetchMovieTitlesFromGroq } from './groqService.js?v=20260521i';
+import { fetchMovieTitlesFromGroq } from './groqService.js?v=20260521j';
 import { getOmdbRatings } from './omdbService.js?v=20260521i';
 import { searchMoviesByTitle, getMovieDetails } from './tmdbService.js?v=20260521i';
 import { getState, setState } from './state.js?v=20260521i';
