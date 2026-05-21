@@ -1,6 +1,8 @@
 name = "movie-mood-picker-groq"
 main = "groq-proxy.js"
 compatibility_date = "2026-05-21"
+workers_dev = true
+preview_urls = false
 
 [vars]
 ALLOWED_ORIGINS = "https://coinpostnews.github.io,http://localhost:4173,http://localhost:4174"
